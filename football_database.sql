@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.0.4
+-- version 4.1.14
 -- http://www.phpmyadmin.net
 --
--- Host: localhost
--- Generation Time: Aug 09, 2014 at 09:22 PM
--- Server version: 5.6.12-log
--- PHP Version: 5.4.12
+-- Host: 127.0.0.1
+-- Generation Time: Sep 05, 2014 at 04:57 AM
+-- Server version: 5.6.17
+-- PHP Version: 5.5.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -19,8 +19,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `football`
 --
-CREATE DATABASE IF NOT EXISTS `football` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `football`;
 
 -- --------------------------------------------------------
 
@@ -31,8 +29,8 @@ USE `football`;
 CREATE TABLE IF NOT EXISTS `actions` (
   `actionID` int(10) NOT NULL AUTO_INCREMENT,
   `actionType` varchar(100) NOT NULL,
-  `entityID` int(100) NOT NULL,
   `actionYards` int(3) DEFAULT NULL,
+  `playerID` int(100) DEFAULT NULL,
   `downID` int(100) NOT NULL,
   PRIMARY KEY (`actionID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=394 ;
@@ -41,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `actions` (
 -- Dumping data for table `actions`
 --
 
-INSERT INTO `actions` (`actionID`, `actionType`, `entityID`, `actionYards`, `downID`) VALUES
+INSERT INTO `actions` (`actionID`, `actionType`, `actionYards`, `playerID`, `downID`) VALUES
 (1, 'rush', 4, 3, 4),
 (2, 'kick', 8, 40, 5),
 (3, 'rush', 4, 3, 4),
@@ -439,43 +437,6 @@ INSERT INTO `actions` (`actionID`, `actionType`, `entityID`, `actionYards`, `dow
 -- --------------------------------------------------------
 
 --
--- Table structure for table `coaches`
---
-
-CREATE TABLE IF NOT EXISTS `coaches` (
-  `coachID` int(10) NOT NULL AUTO_INCREMENT,
-  `coachFirstName` varchar(20) NOT NULL,
-  `coachLastName` varchar(25) NOT NULL,
-  `coachYear` int(3) NOT NULL,
-  `coachType` enum('Head Coach','Assistant Coach') DEFAULT NULL,
-  `teamID` int(10) NOT NULL,
-  PRIMARY KEY (`coachID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
-
---
--- Dumping data for table `coaches`
---
-
-INSERT INTO `coaches` (`coachID`, `coachFirstName`, `coachLastName`, `coachYear`, `coachType`, `teamID`) VALUES
-(1, 'Ed', 'Lamb', 2007, 'Head Coach', 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `comments`
---
-
-CREATE TABLE IF NOT EXISTS `comments` (
-  `commentID` int(10) NOT NULL AUTO_INCREMENT,
-  `commentMessage` varchar(500) NOT NULL,
-  `dateTime` datetime DEFAULT NULL,
-  `userID` int(10) NOT NULL,
-  PRIMARY KEY (`commentID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `conferences`
 --
 
@@ -497,19 +458,6 @@ INSERT INTO `conferences` (`conferenceID`, `conferenceName`, `leagueID`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `defensivestops`
---
-
-CREATE TABLE IF NOT EXISTS `defensivestops` (
-  `defensiveID` int(100) NOT NULL AUTO_INCREMENT,
-  `defenseType` enum('tackle','assistTackle','blockedPass','blockedKick') NOT NULL,
-  `performanceID` int(100) NOT NULL,
-  PRIMARY KEY (`defensiveID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `downs`
 --
 
@@ -523,7 +471,7 @@ CREATE TABLE IF NOT EXISTS `downs` (
   `yardsToGo` int(3) NOT NULL,
   `startTime` time NOT NULL,
   `endTime` time NOT NULL,
-  `matchupID` int(10) DEFAULT NULL,
+  `gameID` int(10) DEFAULT NULL,
   PRIMARY KEY (`downID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=40 ;
 
@@ -531,7 +479,7 @@ CREATE TABLE IF NOT EXISTS `downs` (
 -- Dumping data for table `downs`
 --
 
-INSERT INTO `downs` (`downID`, `downQuarter`, `downNumber`, `teamWithBall`, `sideOfField`, `ballOn`, `yardsToGo`, `startTime`, `endTime`, `matchupID`) VALUES
+INSERT INTO `downs` (`downID`, `downQuarter`, `downNumber`, `teamWithBall`, `sideOfField`, `ballOn`, `yardsToGo`, `startTime`, `endTime`, `gameID`) VALUES
 (1, '', '1', 1, 1, 35, 10, '00:13:24', '00:00:00', 1),
 (2, '', '2', 1, 1, 40, 5, '00:13:20', '00:00:00', 1),
 (3, '', '1', 1, 1, 60, 10, '00:13:01', '00:00:00', 1),
@@ -584,27 +532,9 @@ CREATE TABLE IF NOT EXISTS `entityawards` (
   `entityType` enum('Player','Coach','Team') NOT NULL,
   `awardName` varchar(200) NOT NULL,
   `awardType` varchar(200) NOT NULL,
-  `awardDate` time DEFAULT NULL,
-  `awardSeasonID` int(3) NOT NULL,
+  `awardDate` datetime DEFAULT NULL,
+  `seasonID` int(3) NOT NULL,
   PRIMARY KEY (`awardID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `everythingfootballsheets`
---
-
-CREATE TABLE IF NOT EXISTS `everythingfootballsheets` (
-  `sheetID` int(10) NOT NULL AUTO_INCREMENT,
-  `playerOfGame` int(10) DEFAULT NULL,
-  `playerDroveCrazy` int(10) DEFAULT NULL,
-  `playOfGame` int(10) DEFAULT NULL,
-  `playThatAngered` int(10) DEFAULT NULL,
-  `bestMoment` varchar(300) DEFAULT NULL,
-  `result` varchar(300) DEFAULT NULL,
-  `feelings` varchar(300) DEFAULT NULL,
-  PRIMARY KEY (`sheetID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -615,7 +545,9 @@ CREATE TABLE IF NOT EXISTS `everythingfootballsheets` (
 
 CREATE TABLE IF NOT EXISTS `games` (
   `gameID` int(3) NOT NULL AUTO_INCREMENT,
-  `gameKickOffTime` datetime DEFAULT NULL,
+  `homeTeamID` int(11) NOT NULL,
+  `awayTeamID` int(11) NOT NULL,
+  `kickoffDateTime` datetime DEFAULT NULL,
   `seasonID` int(10) NOT NULL,
   PRIMARY KEY (`gameID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
@@ -624,8 +556,8 @@ CREATE TABLE IF NOT EXISTS `games` (
 -- Dumping data for table `games`
 --
 
-INSERT INTO `games` (`gameID`, `gameKickOffTime`, `seasonID`) VALUES
-(1, '2014-10-08 19:00:00', 1);
+INSERT INTO `games` (`gameID`, `homeTeamID`, `awayTeamID`, `kickoffDateTime`, `seasonID`) VALUES
+(1, 0, 0, '2014-10-08 19:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -647,41 +579,6 @@ CREATE TABLE IF NOT EXISTS `leagues` (
 
 INSERT INTO `leagues` (`leagueID`, `leagueName`, `leagueLevel`, `leagueYear`) VALUES
 (1, 'Big Sky', 'FCS', 2010);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `matchups`
---
-
-CREATE TABLE IF NOT EXISTS `matchups` (
-  `matchupID` int(10) NOT NULL AUTO_INCREMENT,
-  `homeTeamID` int(3) NOT NULL,
-  `awayTeamID` int(3) NOT NULL,
-  `gameID` int(3) NOT NULL,
-  PRIMARY KEY (`matchupID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
-
---
--- Dumping data for table `matchups`
---
-
-INSERT INTO `matchups` (`matchupID`, `homeTeamID`, `awayTeamID`, `gameID`) VALUES
-(1, 1, 2, 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `penalties`
---
-
-CREATE TABLE IF NOT EXISTS `penalties` (
-  `penaltyID` int(100) NOT NULL AUTO_INCREMENT,
-  `penaltyType` enum('update this') NOT NULL,
-  `penaltyOn` enum('player','coach','team') NOT NULL,
-  `performanceID` int(100) NOT NULL,
-  PRIMARY KEY (`penaltyID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -752,7 +649,6 @@ CREATE TABLE IF NOT EXISTS `players` (
   `playerHeight` decimal(3,2) DEFAULT NULL,
   `playerWeight` int(3) DEFAULT NULL,
   `playerYear` enum('Freshman','Sophomore','Junior','Senior') DEFAULT NULL,
-  `isRedshirt` enum('false','true') NOT NULL DEFAULT 'false',
   `playerPreviousSchool` varchar(50) DEFAULT NULL,
   `teamID` int(10) NOT NULL,
   PRIMARY KEY (`playerID`)
@@ -762,65 +658,13 @@ CREATE TABLE IF NOT EXISTS `players` (
 -- Dumping data for table `players`
 --
 
-INSERT INTO `players` (`playerID`, `playerNumber`, `playerFirstName`, `playerLastName`, `playerPosition`, `playerHeight`, `playerWeight`, `playerYear`, `isRedshirt`, `playerPreviousSchool`, `teamID`) VALUES
-(1, 1, 'C.J.', 'Morgan', 'Wide Receiver', '5.11', 178, 'Junior', 'false', 'Aurora, Colo', 1),
-(2, 2, 'Jacob', 'Allie', 'Tight End', '6.00', 230, 'Senior', 'false', 'Lindberg HS', 1),
-(3, 2, 'T.J.', 'Fenton', 'Quarter Back', '6.20', 190, 'Freshman', 'false', 'The Webb School', 1),
-(5, 10, 'Neil', 'Johnson', 'Quarter Back', '6.00', 200, 'Freshman', 'false', 'Canyon View', 2),
-(6, 11, 'Cassity', 'Johnson', 'Wide Receiver', '5.30', 130, 'Freshman', 'false', 'Gunnison', 2),
-(8, 12, 'Isaach', 'Johnson', 'Kicker', '1.00', 20, 'Freshman', 'false', 'None ', 2);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `referees`
---
-
-CREATE TABLE IF NOT EXISTS `referees` (
-  `refID` int(10) NOT NULL AUTO_INCREMENT,
-  `refFirstName` varchar(30) NOT NULL,
-  `refLastName` varchar(40) NOT NULL,
-  `refType` enum('Referee','Umpire','Head Linesman','Line Judge','Back Judge','Field Judge','Side Judge') DEFAULT NULL,
-  `refYear` int(3) DEFAULT NULL,
-  `matchID` int(10) DEFAULT NULL,
-  PRIMARY KEY (`refID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `scorelookup`
---
-
-CREATE TABLE IF NOT EXISTS `scorelookup` (
-  `scoreType` varchar(100) NOT NULL,
-  `scorePoints` int(2) NOT NULL,
-  PRIMARY KEY (`scoreType`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `scorelookup`
---
-
-INSERT INTO `scorelookup` (`scoreType`, `scorePoints`) VALUES
-('2 Point Conversion', 2),
-('Fieldgoal', 3),
-('PAT', 1),
-('Safety', 2),
-('Touchdown', 6);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `scores`
---
-
-CREATE TABLE IF NOT EXISTS `scores` (
-  `scoreID` int(100) NOT NULL AUTO_INCREMENT,
-  `scoreType` enum('Touchdown','PAT','2 Point Conversion','Safety','Fieldgoal') NOT NULL,
-  `performanceID` int(100) NOT NULL,
-  PRIMARY KEY (`scoreID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+INSERT INTO `players` (`playerID`, `playerNumber`, `playerFirstName`, `playerLastName`, `playerPosition`, `playerHeight`, `playerWeight`, `playerYear`, `playerPreviousSchool`, `teamID`) VALUES
+(1, 1, 'C.J.', 'Morgan', 'Wide Receiver', '5.11', 178, 'Junior', 'Aurora, Colo', 1),
+(2, 2, 'Jacob', 'Allie', 'Tight End', '6.00', 230, 'Senior', 'Lindberg HS', 1),
+(3, 2, 'T.J.', 'Fenton', 'Quarter Back', '6.20', 190, 'Freshman', 'The Webb School', 1),
+(5, 10, 'Neil', 'Johnson', 'Quarter Back', '6.00', 200, 'Freshman', 'Canyon View', 2),
+(6, 11, 'Cassity', 'Johnson', 'Wide Receiver', '5.30', 130, 'Freshman', 'Gunnison', 2),
+(8, 12, 'Isaach', 'Johnson', 'Kicker', '1.00', 20, 'Freshman', 'None ', 2);
 
 -- --------------------------------------------------------
 
@@ -852,11 +696,11 @@ INSERT INTO `seasons` (`seasonID`, `seasonYear`, `teamID`, `conferenceID`) VALUE
 
 CREATE TABLE IF NOT EXISTS `teams` (
   `teamID` int(10) NOT NULL AUTO_INCREMENT,
-  `teamSchool` varchar(100) NOT NULL,
-  `teamSchoolAcro` varchar(10) DEFAULT NULL,
-  `teamState` char(20) DEFAULT NULL,
-  `teamCity` varchar(30) DEFAULT NULL,
-  `teamMascot` varchar(40) DEFAULT NULL,
+  `teamFullName` varchar(100) NOT NULL,
+  `teamAcro` varchar(10) NOT NULL,
+  `teamMascot` varchar(20) NOT NULL,
+  `teamState` varchar(30) NOT NULL,
+  `teamCity` varchar(40) NOT NULL,
   `conferenceID` int(10) NOT NULL,
   PRIMARY KEY (`teamID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
@@ -865,7 +709,7 @@ CREATE TABLE IF NOT EXISTS `teams` (
 -- Dumping data for table `teams`
 --
 
-INSERT INTO `teams` (`teamID`, `teamSchool`, `teamSchoolAcro`, `teamState`, `teamCity`, `teamMascot`, `conferenceID`) VALUES
+INSERT INTO `teams` (`teamID`, `teamFullName`, `teamAcro`, `teamMascot`, `teamState`, `teamCity`, `conferenceID`) VALUES
 (1, 'Southern Utah University', 'SUU', 'Utah', 'Cedar City', 'Thunderbirds', 1),
 (2, 'Schoo2', 'S2', 'Texas', 'Houston', 'FooFoos', 1);
 
@@ -881,6 +725,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` varchar(100) NOT NULL,
   `emailAddress` varchar(100) NOT NULL,
   `userROLE` enum('admin','superUser','normal','coach','referee','player') DEFAULT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
 
@@ -888,31 +734,11 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `emailAddress`, `userROLE`) VALUES
-(1, 'Bob', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'bob@gmail.com', NULL),
-(2, 'neilmarkjohnson', 'ff8c3049f15b3bf47a2fa686d8d0e6e917d9d5a3d2fb3c95ebcf6cd078503de8', 'neilmarkjohnson@gmail.com', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `yards`
---
-
-CREATE TABLE IF NOT EXISTS `yards` (
-  `yardID` int(100) NOT NULL AUTO_INCREMENT,
-  `yards` int(3) NOT NULL,
-  `performanceID` int(100) NOT NULL,
-  PRIMARY KEY (`yardID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
-
---
--- Dumping data for table `yards`
---
-
-INSERT INTO `yards` (`yardID`, `yards`, `performanceID`) VALUES
-(1, 5, 1),
-(2, 5, 2);
+INSERT INTO `users` (`id`, `username`, `password`, `emailAddress`, `userROLE`, `created`, `modified`) VALUES
+(1, 'Bob', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'bob@gmail.com', NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(2, 'neilmarkjohnson', 'ff8c3049f15b3bf47a2fa686d8d0e6e917d9d5a3d2fb3c95ebcf6cd078503de8', 'neilmarkjohnson@gmail.com', NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
